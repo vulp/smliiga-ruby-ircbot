@@ -16,7 +16,7 @@ bot = Cinch::Bot.new do
     c.channels = ["#vulpintestit"]
   end
 
-  on :message, /^sm#seuraava$/ do |m|
+  on :message, /^sm#next$/ do |m|
     @doc = Nokogiri::HTML(open(defaultPage))
     m.reply " #{@doc.css('div.matches').css('span').text.insert(-1," ") << @doc.css('div.matches').css('ul').css('li').text}"
   end
