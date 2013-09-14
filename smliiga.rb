@@ -5,9 +5,6 @@ require 'nokogiri'
 require 'cgi'
 require 'date'
 
-defaultPage = 'http://www.liiga.fi/'
-hifkKalenteri = 'http://www.hifk.fi/matsit/kalenteri'
-
 bot = Cinch::Bot.new do
   configure do |c|
     c.nick     = "smliiga" 
@@ -67,7 +64,7 @@ bot = Cinch::Bot.new do
     m.reply " #{@val}"
   end
   on :message, /^sm#help$/ do |m|
-  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto"    
+  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue"    
   end
   on :message, /^sm#help (.+)$/ do |m, help|
   if help.match('otteluohjelma')
