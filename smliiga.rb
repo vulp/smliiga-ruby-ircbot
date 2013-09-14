@@ -56,6 +56,16 @@ bot = Cinch::Bot.new do
     end
     end
   end
+  on :message, /^sm#tilastot (.+)$/ do |m, joukkue|
+    url = "http://www.liiga.fi/joukkueet/#{joukkue}/tilastot.html#tabs"
+    @doc = Nokogiri::HTML(open(url))  
+    @val = joukkue << ": "
+    @val << @doc.css('div#mitaliSaldo').css('h3').text
+    @doc.css('div#mitaliSaldo').css('p').each_with_index do |value,index|
+    @val << value.text << ","
+    end
+    m.reply " #{@val}"
+  end
   on :message, /^sm#help$/ do |m|
   m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto"    
   end
