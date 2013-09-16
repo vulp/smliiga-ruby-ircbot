@@ -63,18 +63,69 @@ bot = Cinch::Bot.new do
     end
     m.reply " #{@val}"
   end
+  on :message, /^sm#sijoitus (.+)$/ do |m, sija|
+	url = "http://www.liiga.fi/tilastot/sarjataulukko.html?s="
+	url << Time.now.strftime("%y").to_s << "-" << (Time.now.strftime("%y").to_i+1).to_s
+	@doc = Nokogiri::HTML(open(url))  
+	@kaikki = ""
+	@doc.css('table.teamTable')[0].css('tr').each_with_index do |value,index|
+		if index > 0
+		@val = value.css('td')[1]
+		if sija.length > 0 && sija.to_i > 0 && sija.to_i < 15 && sija.to_i == index 		
+			@val = value.css('td')[1]
+			m.reply " #{@val.text}" 
+		elsif sija.length > 0 && sija.match('kaikki')
+			@val = value.css('td')[1]
+			@kaikki << @val.text << ", "
+		elsif sija.length > 0 && sija.match(@val)
+			m.reply " #{index}"	
+		end
+		end	
+	end
+	if sija.length > 0 && sija.match('kaikki')
+		m.reply " #{@kaikki}"	
+	end
+  end
+  on :message, /^sm#sarjataulu (.+)$/ do |m, joukkue|
+	url = "http://www.liiga.fi/tilastot/sarjataulukko.html?s="
+	url << Time.now.strftime("%y").to_s << "-" << (Time.now.strftime("%y").to_i+1).to_s
+	@doc = Nokogiri::HTML(open(url))  
+	@sarjataulukko = ""
+	@joukkuetaulukko = ""
+	if joukkue.length > 0
+	@doc.css('table.teamTable')[0].css('tr').each_with_index do |value,index|
+	for i in 0..13
+		if index == 0	
+			@val = value.css('th')[i]
+			if i == 1
+			@val << "N"
+			end
+			@sarjataulukko << @val.text << ", "	
+		elsif index > 0 && joukkue.match(value.css('td')[1])
+			@val = value.css('td')[i]
+			@joukkuetaulukko << @val.text << ", "
+		end		
+	end
+	end
+	end
+	m.reply " #{@sarjataulukko}"
+	m.reply " #{@joukkuetaulukko}"
+  end
   on :message, /^sm#help$/ do |m|
-  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue"    
+  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue, sm#sijoitus 1-14,sm#sijoitus joukkue, sm#sijoitus kaikki, sm#sarjataulu joukkue"    
   end
   on :message, /^sm#help (.+)$/ do |m, help|
   if help.match('otteluohjelma')
      m.reply " Example: sm#otteluohjelma hifk"    
   elsif help.match('tilasto')
      m.reply " Example: sm#hifk#Ottelut, sm#hifk#(Ottelut, Voitot, Tasapelit, Häviöt, Tehdyt maalit, Päästetyt, maalit, Tehdyt maalit / ottelu, Päästetyt maalit / ottelu, Ylivoimamaalit, Alivoimamaalit,  Rangaistukset, Laukaukset, Pisteet, Jatkoaikavoitot, Jatkoaikahäviöt, Voittomaalikilpailujen, voitot, Voittomaalikilpailujen häviöt, Yleisömäärä kotiotteluissa)"    
+  elsif help.match('sarjataulu')
+    m.reply "Ottelut, Voitot,Tasapelit, Häviöt, Tehdyt maalit, Päästetyt maalit, Lisäpisteet, Pisteet, Pisteitä/ottelut, Perättäiset voitot, Perättäiset tasapelit, Perättäiset häviöt"
   end
   end
-
 end
+
+
 
 bot.start
 
