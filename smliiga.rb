@@ -4,7 +4,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1
+@@version = 1.1
 
 bot = Cinch::Bot.new do
   configure do |c|
@@ -163,8 +163,23 @@ bot = Cinch::Bot.new do
    	    m.reply "version: #{@@version}"
         end	 	
   end
+  on :message, /^sm#info (.+)#(.+)$/ do |m, joukkue,info|
+	begin
+	url = "http://www.liiga.fi/joukkueet/#{joukkue}.html"
+	@doc = Nokogiri::HTML(open(url))
+        @val = ""
+	@doc.css('div.colLeft').css('div.blackBox').css('p').each_with_index do |value,index|
+	if value.text.downcase.match(info.downcase)
+		@val = value.text
+	end
+	end
+	m.reply " #{@val}"
+        rescue Exception => e
+	    puts "EXCEPTION: " << e.message
+        end
+  end
   on :message, /^sm#help$/ do |m|
-  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue, sm#sijoitus 1-14,sm#sijoitus joukkue, sm#sijoitus kaikki, sm#sarjataulu joukkue,sm#version"    
+  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue, sm#sijoitus 1-14,sm#sijoitus joukkue, sm#sijoitus kaikki, sm#sarjataulu joukkue,sm#version, sm#info joukkue#tieto"    
   end
   on :message, /^sm#help (.+)$/ do |m, help|
   if help.match('otteluohjelma')
@@ -175,6 +190,8 @@ bot = Cinch::Bot.new do
     m.reply "Ottelut, Voitot,Tasapelit, Häviöt, Tehdyt maalit, Päästetyt maalit, Lisäpisteet, Pisteet, Pisteitä/ottelut, Perättäiset voitot, Perättäiset tasapelit, Perättäiset häviöt"
   elseif help.match('version')
     m.reply " bot version"
+  elseif help.match('info')	
+    m.replse "sm#info joukkue#Perustettu"
   end
   end
 end
