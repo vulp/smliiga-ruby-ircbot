@@ -153,7 +153,15 @@ bot = Cinch::Bot.new do
         end
   end
   on :message, /^sm#version$/ do |m|
-	m.reply "version: #{@@version}"
+	begin
+	url = "https://github.com/vulp/smliiga-ruby-ircbot/blob/master/README"
+	@doc = Nokogiri::HTML(open(url))
+        @repov = @doc.css('table.file-code').css('div').last.text[8..-1]
+	m.reply "version: #{@@version}|||version in repo: #{@repov}"
+        rescue Exception => e
+	    puts "EXCEPTION IN VERSION: " << e.message
+   	    m.reply "version: #{@@version}"
+        end	 	
   end
   on :message, /^sm#help$/ do |m|
   m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue, sm#sijoitus 1-14,sm#sijoitus joukkue, sm#sijoitus kaikki, sm#sarjataulu joukkue,sm#version"    
