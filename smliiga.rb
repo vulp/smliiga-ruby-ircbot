@@ -4,7 +4,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1.2
+@@version = 1.3
 
 bot = Cinch::Bot.new do
   configure do |c|
@@ -58,7 +58,7 @@ bot = Cinch::Bot.new do
   end
   on :message, /^Day changed to$/ do |m, query|
     begin	
-    m.channel.topic=(seuraava("hifk"))
+    m.channel.topic=(seuraava("hifk"))#needs spam fix?
     rescue Exception => e 
 	puts e.message    
     end	
@@ -202,13 +202,13 @@ bot = Cinch::Bot.new do
      m.reply " Example: sm#hifk#Ottelut, sm#hifk#(Ottelut, Voitot, Tasapelit, Häviöt, Tehdyt maalit, Päästetyt, maalit, Tehdyt maalit / ottelu, Päästetyt maalit / ottelu, Ylivoimamaalit, Alivoimamaalit,  Rangaistukset, Laukaukset, Pisteet, Jatkoaikavoitot, Jatkoaikahäviöt, Voittomaalikilpailujen, voitot, Voittomaalikilpailujen häviöt, Yleisömäärä kotiotteluissa)"    
   elsif help.match('sarjataulu')
     m.reply "Ottelut, Voitot,Tasapelit, Häviöt, Tehdyt maalit, Päästetyt maalit, Lisäpisteet, Pisteet, Pisteitä/ottelut, Perättäiset voitot, Perättäiset tasapelit, Perättäiset häviöt"
-  elseif help.match('version')
+  elsif help.match('version')
     m.reply " bot version"
-  elseif help.match('info')	
-    m.replse "sm#info joukkue#Perustettu"
+  elsif help.match('info')	
+    m.reply "sm#info joukkue#Perustettu"
   end
   end
-
+  
 end
 
 
