@@ -4,7 +4,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1.1
+@@version = 1.2
 
 bot = Cinch::Bot.new do
   configure do |c|
@@ -13,7 +13,9 @@ bot = Cinch::Bot.new do
     c.channels = ["#vulpintestit"]
   end
 
-  on :message, /^sm#otteluohjelma (.+)$/ do |m, query|
+  helpers do
+    def seuraava(query)
+     
     @time = Time.new
     begin	
     	url = "http://www.liiga.fi/joukkueet/#{query}/otteluohjelma.html#tabs"
@@ -47,10 +49,22 @@ bot = Cinch::Bot.new do
     end
 
     end
-    m.reply " #{@valCopy} #{@timeCopy.text} #{@match.text}"
+    return "" << @valCopy << " " << @timeCopy.text << " " << @match.text
     rescue Exception => e 
 	puts e.message    
     end
+	
+    end
+  end
+  on :message, /^Day changed to$/ do |m, query|
+    begin	
+    m.channel.topic=(seuraava("hifk"))
+    rescue Exception => e 
+	puts e.message    
+    end	
+  end
+  on :message, /^sm#otteluohjelma (.+)$/ do |m, query|
+      m.reply seuraava(query)
   end
   on :message, /^sm#(.+)#(.+)$/ do |m,joukkue,tilasto|
     begin
@@ -194,11 +208,11 @@ bot = Cinch::Bot.new do
     m.replse "sm#info joukkue#Perustettu"
   end
   end
+
 end
 
 
 
 bot.start
-
 
 
