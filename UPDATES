@@ -1,0 +1,9 @@
+Version 1.4:
+- Commands doesn't work properly(overlap)
+- Update log
+- automatic topic changer
+- prefix !liiga#
+- defaultTeam
+- defaultChannel
+- defaultNick
+- help updated

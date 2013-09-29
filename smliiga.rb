@@ -4,7 +4,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1.4
+@@version = 1.5
 @@prefix = "!liiga#"#default prefix
 @@defaultTeam = "hifk"#default team
 @@defaultChannel = "#vulpintestit"#default channel
@@ -55,7 +55,7 @@ end
 class TimedPlugin
   include Cinch::Plugin
 
-  timer 43200000, method: :timedTopic # change topic every 12 hours
+  timer 43200, method: :timedTopic # change topic every 12 hours
   def timedTopic
     @p = NextMatch.new
     Channel(@@defaultChannel).topic=(@p.send( :match, @@defaultTeam))#needs spam fix?
@@ -212,7 +212,13 @@ bot = Cinch::Bot.new do
   on :message, /^#{@@prefix} help$/ do |m|
   m.reply " Commands: #{@@prefix} changeTopic , #{@@prefix} nextMatch hifk , #{@@prefix} statistics hifk#voitot , #{@@prefix} medal balance hifk , #{@@prefix} ranking (hifk,kaikki,1-14), #{@@prefix} standings hifk, #{@@prefix} bot version, #{@@prefix} team info hifk#perustettu"
   end
-  
+  on :message, /^#{@@prefix} help (.+)$/ do |m,query|
+  if query.downcase.match("statistics")
+     m.reply "Ottelut, Voitot,Tasapelit, Häviöt, Tehdyt maalit, Päästetyt maalit, Lisäpisteet, Pisteet, Pisteitä/ottelut, Perättäiset voitot, Perättäiset tasapelit, Perättäiset häviöt" 
+  else
+     m.reply "todo!"
+  end
+  end
 end
 
 
