@@ -1,9 +1,13 @@
 Commands:
-sm#otteluohjelma joukkue
-sm#joukkue#Ottelut, sm#joukkue#Voitot .....
-sm#tilastot joukkue
-sm#help
-sm#help command
+#{@@prefix} = !smliiga#
+#{@@prefix} changeTopic 
+#{@@prefix} nextMatch hifk
+#{@@prefix} statistics hifk#voitot
+#{@@prefix} medal balance hifk
+#{@@prefix} ranking (hifk,kaikki,1-14)
+#{@@prefix} standings hifk
+#{@@prefix} bot version
+#{@@prefix} team info hifk#perustettu
 
 
-Version:1.3
+Version:1.4

@@ -4,21 +4,17 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1.3
+@@version = 1.4
+@@prefix = "!liiga#"#default prefix
+@@defaultTeam = "hifk"#default team
+@@defaultChannel = "#vulpintestit"#default channel
+@@defaultNick = "smliiga"#default nick
+class NextMatch
 
-bot = Cinch::Bot.new do
-  configure do |c|
-    c.nick     = "smliiga" 
-    c.server   = "irc.freenode.org"
-    c.channels = ["#vulpintestit"]
-  end
-
-  helpers do
-    def seuraava(query)
-     
+  def match(team)     
     @time = Time.new
     begin	
-    	url = "http://www.liiga.fi/joukkueet/#{query}/otteluohjelma.html#tabs"
+    	url = "http://www.liiga.fi/joukkueet/#{team}/otteluohjelma.html#tabs"
 	@date = Date.parse(@time.strftime("%d.%m.%Y").to_s)
 	@doc = Nokogiri::HTML(open(url))
     rescue Exception => e 
@@ -52,21 +48,41 @@ bot = Cinch::Bot.new do
     return "" << @valCopy << " " << @timeCopy.text << " " << @match.text
     rescue Exception => e 
 	puts e.message    
-    end
-	
-    end
+    end	
   end
-  on :message, /^Day changed to$/ do |m, query|
-    begin	
-    m.channel.topic=(seuraava("hifk"))#needs spam fix?
+end
+
+class TimedPlugin
+  include Cinch::Plugin
+
+  timer 43200000, method: :timedTopic # change topic every 12 hours
+  def timedTopic
+    @p = NextMatch.new
+    Channel(@@defaultChannel).topic=(@p.send( :match, @@defaultTeam))#needs spam fix?
+  end
+end
+
+bot = Cinch::Bot.new do
+  configure do |c|
+    c.nick     = @@defaultNick 
+    c.server   = "irc.freenode.org"
+    c.channels = [@@defaultChannel]
+    c.plugins.plugins = [TimedPlugin]
+  end
+  
+  on :message, /^#{@@prefix} changeTopic$/ do     
+    begin
+    @p = NextMatch.new	
+    Channel(@@defaultChannel).topic=(@p.send( :match, @@defaultTeam))
     rescue Exception => e 
 	puts e.message    
     end	
   end
-  on :message, /^sm#otteluohjelma (.+)$/ do |m, query|
-      m.reply seuraava(query)
+  on :message, /^#{@@prefix} nextMatch (.+)$/ do |m, query|
+      @p = NextMatch.new
+      m.reply @p.send( :match, query)
   end
-  on :message, /^sm#(.+)#(.+)$/ do |m,joukkue,tilasto|
+  on :message, /^#{@@prefix} statistics (.+)#(.+)$/ do |m,joukkue,tilasto|
     begin
 	url = "http://www.liiga.fi/joukkueet/#{joukkue}.html"
 	@doc = Nokogiri::HTML(open(url))     
@@ -77,14 +93,15 @@ bot = Cinch::Bot.new do
     @doc.css('table.dataTable').css('tr').each_with_index do |value,index|
     if value.content.match(tilasto)
       val = value.css('td')[1]
-      m.reply " #{val.text}"    
+      m.reply " #{val.text}"   
+	puts value,index 
     end
     end
     rescue Exception => e
 	puts "EXCEPTION: " << e.message
     end
   end
-  on :message, /^sm#tilastot (.+)$/ do |m, joukkue|
+  on :message, /^#{@@prefix} medal balance (.+)$/ do |m, joukkue|
     begin
 	url = "http://www.liiga.fi/joukkueet/#{joukkue}/tilastot.html#tabs"
 	@doc = Nokogiri::HTML(open(url))  
@@ -102,7 +119,7 @@ bot = Cinch::Bot.new do
 	puts "EXCEPTION: " << e.message
     end
   end
-  on :message, /^sm#sijoitus (.+)$/ do |m, sija|
+  on :message, /^#{@@prefix} ranking (.+)$/ do |m, sija|
         begin
   	    url = "http://www.liiga.fi/tilastot/sarjataulukko.html?s="
 	    url << Time.now.strftime("%y").to_s << "-" << (Time.now.strftime("%y").to_i+1).to_s
@@ -133,7 +150,7 @@ bot = Cinch::Bot.new do
 	    puts "EXCEPTION: " << e.message
         end
   end
-  on :message, /^sm#sarjataulu (.+)$/ do |m, joukkue|
+  on :message, /^#{@@prefix} standings (.+)$/ do |m, joukkue|
         begin
 	    url = "http://www.liiga.fi/tilastot/sarjataulukko.html?s="
 	    url << Time.now.strftime("%y").to_s << "-" << (Time.now.strftime("%y").to_i+1).to_s
@@ -166,7 +183,7 @@ bot = Cinch::Bot.new do
 	    puts "EXCEPTION: " << e.message
         end
   end
-  on :message, /^sm#version$/ do |m|
+  on :message, /^#{@@prefix} bot version$/ do |m|
 	begin
 	url = "https://github.com/vulp/smliiga-ruby-ircbot/blob/master/README"
 	@doc = Nokogiri::HTML(open(url))
@@ -177,7 +194,7 @@ bot = Cinch::Bot.new do
    	    m.reply "version: #{@@version}"
         end	 	
   end
-  on :message, /^sm#info (.+)#(.+)$/ do |m, joukkue,info|
+  on :message, /^#{@@prefix} team info (.+)#(.+)$/ do |m, joukkue,info|
 	begin
 	url = "http://www.liiga.fi/joukkueet/#{joukkue}.html"
 	@doc = Nokogiri::HTML(open(url))
@@ -192,27 +209,16 @@ bot = Cinch::Bot.new do
 	    puts "EXCEPTION: " << e.message
         end
   end
-  on :message, /^sm#help$/ do |m|
-  m.reply " Commands: sm#otteluohjelma joukkue, sm#joukkue#tilasto, sm#tilastot joukkue, sm#sijoitus 1-14,sm#sijoitus joukkue, sm#sijoitus kaikki, sm#sarjataulu joukkue,sm#version, sm#info joukkue#tieto"    
-  end
-  on :message, /^sm#help (.+)$/ do |m, help|
-  if help.match('otteluohjelma')
-     m.reply " Example: sm#otteluohjelma hifk"    
-  elsif help.match('tilasto')
-     m.reply " Example: sm#hifk#Ottelut, sm#hifk#(Ottelut, Voitot, Tasapelit, Häviöt, Tehdyt maalit, Päästetyt, maalit, Tehdyt maalit / ottelu, Päästetyt maalit / ottelu, Ylivoimamaalit, Alivoimamaalit,  Rangaistukset, Laukaukset, Pisteet, Jatkoaikavoitot, Jatkoaikahäviöt, Voittomaalikilpailujen, voitot, Voittomaalikilpailujen häviöt, Yleisömäärä kotiotteluissa)"    
-  elsif help.match('sarjataulu')
-    m.reply "Ottelut, Voitot,Tasapelit, Häviöt, Tehdyt maalit, Päästetyt maalit, Lisäpisteet, Pisteet, Pisteitä/ottelut, Perättäiset voitot, Perättäiset tasapelit, Perättäiset häviöt"
-  elsif help.match('version')
-    m.reply " bot version"
-  elsif help.match('info')	
-    m.reply "sm#info joukkue#Perustettu"
-  end
+  on :message, /^#{@@prefix} help$/ do |m|
+  m.reply " Commands: #{@@prefix} changeTopic , #{@@prefix} nextMatch hifk , #{@@prefix} statistics hifk#voitot , #{@@prefix} medal balance hifk , #{@@prefix} ranking (hifk,kaikki,1-14), #{@@prefix} standings hifk, #{@@prefix} bot version, #{@@prefix} team info hifk#perustettu"
   end
   
 end
 
 
-
 bot.start
+
+
+
 
 
