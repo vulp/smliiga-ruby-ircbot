@@ -8,6 +8,7 @@ Commands:
 #{@@prefix} standings hifk
 #{@@prefix} bot version
 #{@@prefix} team info hifk#perustettu
+#{@@prefix} help
+#{@@prefix} help {command}
 
-
-Version:1.5
+Version:1.6

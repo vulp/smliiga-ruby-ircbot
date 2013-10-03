@@ -4,11 +4,13 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1.5
+@@version = 1.6
 @@prefix = "!liiga#"#default prefix
 @@defaultTeam = "hifk"#default team
 @@defaultChannel = "#vulpintestit"#default channel
 @@defaultNick = "smliiga"#default nick
+@oldTopic = ""
+
 class NextMatch
 
   def match(team)     
@@ -58,7 +60,11 @@ class TimedPlugin
   timer 43200, method: :timedTopic # change topic every 12 hours
   def timedTopic
     @p = NextMatch.new
-    Channel(@@defaultChannel).topic=(@p.send( :match, @@defaultTeam))#needs spam fix?
+    @newTopic = @p.send( :match, @@defaultTeam)
+    if @newTopic != @oldTopic
+        Channel(@@defaultChannel).topic=(@p.send( :match, @@defaultTeam))#needs spam fix?
+        @oldTopic = @newTopic
+    end
   end
 end
 
@@ -215,6 +221,8 @@ bot = Cinch::Bot.new do
   on :message, /^#{@@prefix} help (.+)$/ do |m,query|
   if query.downcase.match("statistics")
      m.reply "Ottelut, Voitot,Tasapelit, Häviöt, Tehdyt maalit, Päästetyt maalit, Lisäpisteet, Pisteet, Pisteitä/ottelut, Perättäiset voitot, Perättäiset tasapelit, Perättäiset häviöt" 
+  elsif query.downcase.match("team info")
+     m.reply "Perustettu, Kotikenttä, Kotisivu, Puheenjohtaja, Toimitusjohtaja, Päävalmentaja, Kapteenisto"
   else
      m.reply "todo!"
   end
