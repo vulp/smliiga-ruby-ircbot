@@ -4,12 +4,13 @@ require 'open-uri'
 require 'nokogiri'
 require 'cgi'
 require 'date'
-@@version = 1.6
+@@version = 1.7
 @@prefix = "!liiga#"#default prefix
 @@defaultTeam = "hifk"#default team
 @@defaultChannel = "#vulpintestit"#default channel
 @@defaultNick = "smliiga"#default nick
 @oldTopic = ""
+
 
 class NextMatch
 
@@ -25,7 +26,7 @@ class NextMatch
     begin
     @valCopy = ""#pvm
     @timeCopy = ""#clock
-    @match = ""#match
+    @match = ""#match    
     @doc.css('table.dataTableDark').css('tr').each_with_index do |value,index|
     val = value.css('td')[1]
 
@@ -47,7 +48,8 @@ class NextMatch
     end
 
     end
-    return "" << @valCopy << " " << @timeCopy.text << " " << @match.text
+    @dateName = Date.parse(@valCopy).strftime("%A")    
+    return "" << @dateName << ":" << @valCopy << " " << @timeCopy.text << " " << @match.text
     rescue Exception => e 
 	puts e.message    
     end	
@@ -75,7 +77,7 @@ bot = Cinch::Bot.new do
     c.channels = [@@defaultChannel]
     c.plugins.plugins = [TimedPlugin]
   end
-  
+ 
   on :message, /^#{@@prefix} changeTopic$/ do     
     begin
     @p = NextMatch.new	
